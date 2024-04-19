@@ -380,9 +380,27 @@ app.get('/SupervisoresDisponibles', async (req, res) => {
   res.status(200).json(rows)
 })
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Lista de usuarios
 app.get('/Usuarios', async (req, res) => {
   try {
-    const [rows] = await pool.query(`SELECT Usuario, Contrasena, NombreCompleto, FechaRegistro, Rol, Estatus FROM Usuarios ORDER BY NombreCompleto`);
+    const [rows] = await pool.query(`SELECT Usuario, Contrasena, NombreCompleto, FechaRegistro, Rol, Estatus, CorreoElectronico, FechaNacimiento, Genero, Direccion FROM Usuarios ORDER BY NombreCompleto`);
 
     // Envía una respuesta indicando que la consulta se ha realizado correctamente
     res.status(200).json(rows);
@@ -394,24 +412,52 @@ app.get('/Usuarios', async (req, res) => {
   }
 });
 
+
+// Verificacion de usuario -- LogIn
+app.get('/Usuarios/:User/:Pass', async (req, res) => {
+  try {
+    const usuario = req.params.User;
+    const contrasena = req.params.Pass;
+    const query = `SELECT Usuario, Contrasena, NombreCompleto, FechaRegistro, Rol, Estatus, CorreoElectronico, FechaNacimiento, Genero, Direccion FROM Usuarios where Usuario = ? and Contrasena = ?`;
+
+    const query2 = `SELECT Usuario, Contrasena, NombreCompleto, FechaRegistro, Rol, Estatus, CorreoElectronico, FechaNacimiento, Genero, Direccion FROM Usuarios where Usuario = ?`;
+  
+    const [rows] = await pool.query(query, [usuario,contrasena]);
+    const [rows2] = await pool.query(query2, [usuario]);
+
+    if (rows2.length === 0) {
+      // Si no se encontraron registros, devuelve un mensaje de error
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    if (rows.length === 0) {
+      // Si no se verifico la contraseña, devuelve un mensaje de error 401
+      return res.status(401).json({ error: 'Contraseña Invalida' });
+    }
+    
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en la consulta' });
+  }
+})
+
+
+
 //agregar usuario nuevo
 app.post('/Usuarios', async (req, res) => {
   const newUserData = req.body; // Datos del nuevo usuario en el cuerpo de la solicitud
 
   const insertQuery = `
-    INSERT INTO Usuarios (Usuario, Contrasena, NombreCompleto, CorreoElectronico, FechaRegistro, Rol, Estatus, CodigoVendedor, Direccion, NumeroTelefono, Cedula, SupervisadoPor) VALUES (?, ?, ?, ?, DATE_SUB(NOW(), INTERVAL 4 HOUR), ?, 1, ?, ?, ?, ?, ?)`;
+    INSERT INTO Usuarios (Usuario, Contrasena, NombreCompleto, FechaRegistro, Rol, Estatus, CorreoElectronico, FechaNacimiento, Genero, Direccion) VALUES (?, ?, ?, DATE_SUB(NOW(), INTERVAL 4 HOUR), ?, 1, ?, ?, ?, ?)`;
 
   const insertValues = [
-    newUserData.usuario, newUserData.contrasena, newUserData.nombreCompleto, newUserData.correoElectronico, newUserData.rol, newUserData.codigoVendedor, newUserData.direccion, newUserData.numeroTelefono, newUserData.cedula, newUserData.supervisadoPor
+    newUserData.usuario, newUserData.contrasena, newUserData.nombreCompleto, newUserData.rol, newUserData.correoElectronico, newUserData.fechaNacimiento, newUserData.genero, newUserData.direccion
   ];
 
-  const updateQueryVendedor = `UPDATE Vendedores SET SupervisadoPor = ? WHERE codigo = ?`;
-  
-  const updateValuesVendedor = [newUserData.supervisadoPor, newUserData.codigoVendedor];
 
   try {
     await pool.query(insertQuery, insertValues);
-    await pool.query(updateQueryVendedor, updateValuesVendedor);
     res.status(200).json({ message: 'Usuario agregado correctamente' });
   } catch (error) {
     console.error(error);
