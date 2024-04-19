@@ -443,7 +443,6 @@ app.get('/Usuarios/:User/:Pass', async (req, res) => {
 })
 
 
-
 //agregar usuario nuevo
 app.post('/Usuarios', async (req, res) => {
   const newUserData = req.body; // Datos del nuevo usuario en el cuerpo de la solicitud
@@ -462,6 +461,24 @@ app.post('/Usuarios', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al agregar el usuario' });
+  }
+});
+
+
+// Eliminar usuario
+app.delete('/Usuarios/:User', async (req, res) => {
+  try {
+    const usuarioId = req.params.User;
+    
+    // Realiza la eliminación del usuario en la base de datos
+    await pool.query('DELETE FROM Usuarios WHERE Usuario = ?', [usuarioId]);
+
+    // Envía una respuesta indicando que el usuario ha sido eliminado correctamente
+    res.status(200).json({ message: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    // Si ocurre un error durante la eliminación, envía una respuesta de error
+    console.error('Error al eliminar usuario', error);
+    res.status(500).json({ error: 'Error al eliminar usuario' });
   }
 });
 
