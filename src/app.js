@@ -483,6 +483,35 @@ app.delete('/Usuarios/:User', async (req, res) => {
 });
 
 
+// Modificar usuario
+app.put('/Usuarios/:Usuario', async (req, res) => {
+  const usuario = req.params.Usuario;
+  const updatedUserData = req.body; // Datos actualizados del usuario en el cuerpo de la solicitud
+
+  const updateQuery = `
+    UPDATE Usuarios SET Contrasena = ?, NombreCompleto = ?, Rol = ?, Estatus = ?, CorreoElectronico = ?, FechaNacimiento = ?, Genero = ?, Direccion = ? WHERE Usuario = ?`;
+  
+  const updateValues = [
+    updatedUserData.contrasena, updatedUserData.nombreCompleto, updatedUserData.rol, updatedUserData.estatus, updatedUserData.correoElectronico, updatedUserData.fechaNacimiento, updatedUserData.genero, updatedUserData.direccion, usuario
+  ];
+
+ 
+  try {
+    const [result] = await pool.query(updateQuery, updateValues);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Registro actualizado correctamente' });
+    } else {
+      res.status(404).json({ error: 'Registro no Actualizado' });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en la actualización' });
+  }
+});
+
+
 // Filtrar usuarios por usuario
 app.get('/Usuarios/:Usuario', async (req, res) => {
   try {
@@ -497,41 +526,6 @@ app.get('/Usuarios/:Usuario', async (req, res) => {
   }
 })
 
-// Actualizar usuario por usuario OOO
-app.put('/Usuarios/:Usuario', async (req, res) => {
-  const usuario = req.params.Usuario;
-  const updatedUserData = req.body; // Datos actualizados del usuario en el cuerpo de la solicitud
-
-  const updateQuery = `
-    UPDATE Usuarios SET Contrasena = ?, NombreCompleto = ?, CorreoElectronico = ?, Rol = ?, Estatus = ?, CodigoVendedor = ?, FechaNacimiento = ?, Direccion = ?, NumeroTelefono = ?, Cedula = ?, SupervisadoPor = ? WHERE Usuario = ?`;
-  
-  const updateValues = [
-    updatedUserData.contrasena, updatedUserData.nombreCompleto, updatedUserData.correoElectronico, updatedUserData.rol, updatedUserData.estatus, updatedUserData.codigoVendedor, updatedUserData.fechaNacimiento, updatedUserData.direccion, updatedUserData.numeroTelefono, updatedUserData.cedula, updatedUserData.supervisadoPor, usuario
-  ];
-
-  const updateQueryVendedor = `UPDATE Vendedores SET SupervisadoPor = ? WHERE codigo = ?`;
-  
-  const updateValuesVendedor = [updatedUserData.supervisadoPor, updatedUserData.codigoVendedor];
- 
-  try {
-    const [result] = await pool.query(updateQuery, updateValues);
-    const [result2] = await pool.query(updateQueryVendedor, updateValuesVendedor);
-
-    if (updatedUserData.rol == 'Gerente' && result.affectedRows > 0) {
-      res.status(200).json({ message: 'Registro actualizado correctamente' });
-    } else {
-      if (result.affectedRows > 0 && result2.affectedRows > 0) {
-        res.status(200).json({ message: 'Registro actualizado correctamente' });
-      } else {
-        res.status(404).json({ error: 'Registro no Actualizado' });
-      }
-    }
-
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error en la actualización' });
-  }
-});
 
 
 app.get('/ping', async (req, res) => {
