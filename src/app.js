@@ -86,7 +86,7 @@ app.delete('/Usuarios/:User', async (req, res) => {
     // Realiza la eliminación del usuario en la base de datos
     const [rows] = await pool.query('DELETE FROM Usuarios WHERE Usuario = ?', [usuarioId]);
 
-    if (rows.length === 0) {
+    if (rows.affectedRows === 0) {
       // Si no se encontraron registros, devuelve un mensaje de error
       return res.status(404).json({ error: 'Usuario a eliminar no encontrado' });
     }
