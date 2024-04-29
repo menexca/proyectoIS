@@ -11,6 +11,21 @@ app.use(cors());
 
 app.use(express.json());
 
+// Lista de Clientes
+app.get('/Clientes', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT Usuario, NombreCompleto as Nombre, Estatus, (TIMESTAMPDIFF(YEAR, fechanacimiento, CURDATE()) - (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(fechanacimiento, '%m%d'))) AS Edad, Genero FROM Usuarios where rol='Cliente' ORDER BY NombreCompleto`);
+
+    // Envía una respuesta indicando que la consulta se ha realizado correctamente
+    res.status(200).json(rows);
+    //sdsd
+  } catch (error) {
+    // Si ocurre un error durante la consulta, envía una respuesta de error
+    console.error('Error al obtener los usuarios', error);
+    res.status(500).json({ error: 'Error al obtener los usuarios' });
+  }
+});
+
 
 // Lista de usuarios
 app.get('/Usuarios', async (req, res) => {
